@@ -1,0 +1,8 @@
+{
+  "name": "bun-hot-server",
+  "bin": "hot-server.js",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "license": "MIT"
+}
