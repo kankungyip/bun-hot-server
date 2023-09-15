@@ -1,22 +1,8 @@
-#!/usr/bin/env bun --watch
-
 import * as path from 'node:path';
 import { statSync, watch } from 'node:fs';
 import HotLoader from './hot-loader';
 
 const HOT_PATH = '__hot';
-
-const compile = async (option = {}, { hostname, port }) => {
-  option.plugins = option.plugins || [];
-  option.plugins.push(
-    HotLoader({
-      url: `ws://${hostname}:${port}/${HOT_PATH}`,
-    })
-  );
-  option.minify = false;
-  option.sourcemap = 'inline';
-  return await Bun.build(option);
-};
 
 const serveFromDir = (option) => {
   const basePath = path.join(option.directory, option.path);
@@ -37,6 +23,9 @@ const serveFromDir = (option) => {
 
 import(`${process.cwd()}/serve.config`).then(async ({ default: option = {} }) => {
   const directory = option.directory || {};
+
+  const buildOption = option.build;
+  buildOption.minify = false;
 
   let watcher;
   if (directory.watch) {
@@ -93,7 +82,7 @@ import(`${process.cwd()}/serve.config`).then(async ({ default: option = {} }) =>
           open(ws) {
             watcher.addListener('change', async () => {
               console.log('\nrebuilding...');
-              const result = await compile(compilerOption, { hostname, port });
+              const result = await Bun.build(buildOption);
               if (result.success) {
                 console.log('build complete.\n');
                 ws.send('reloading');
@@ -109,10 +98,12 @@ import(`${process.cwd()}/serve.config`).then(async ({ default: option = {} }) =>
       : null,
   });
 
+  buildOption.plugins = buildOption.plugins || [];
+  buildOption.plugins.push(HotLoader({ url: `ws://${hostname}:${port}/${HOT_PATH}` }));
+
   console.log('\nbuilding...');
 
-  const compilerOption = option.build;
-  const result = await compile(compilerOption, { hostname, port });
+  const result = await Bun.build(buildOption);
   if (result.success) {
     console.log('build complete.\n');
 

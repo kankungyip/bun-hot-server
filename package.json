@@ -1,6 +1,6 @@
 {
   "name": "bun-hot-server",
-  "bin": "hot-server.js",
+  "bin": "bin.js",
   "devDependencies": {
     "bun-types": "latest"
   },
